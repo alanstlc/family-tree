@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Family tree from json</title>
+</head>
+<body>
+<form action="/" method="post">
+    <h1>Enter family tree in json:</h1>
+    <textarea type="text" rows="200" cols="50" id="input_data" name="input_data" style="width: 800px; height: 300px">{{ input_data }}</textarea><br>
+    <input type="submit" value="Submit">
+</form>
+<div id="body">
+    <h3>PNG output:<br></h3>
+    {{ message }}
+</div>
+<table>
+    <tr>
+        <td>
+            Name: <textarea></textarea>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <button id="create_record">Create record</button>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
