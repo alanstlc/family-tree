@@ -1,4 +1,5 @@
 import json
+import math
 import re
 
 from graphviz import Graph
@@ -16,7 +17,7 @@ def create_families(persons):
     families = {}
     for person_id in persons:
         person = persons[person_id]
-        # look for rather and mother
+        # look for father and mother
         if person.f_id or person.m_id:
             if person.f_id and person.m_id:
                 family_id = '{}-{}'.format(person.f_id, person.m_id)
@@ -41,64 +42,110 @@ def create_families(persons):
 def create_label(persons, person_id):
     person = persons[person_id]
     label = person.name
-    if person.birth_date and person.birth_date != 'null':
-        label += "\n*{}".format(person.birth_date)
-    if person.death_date or person.death_date == 'null':
-        label += "\n+{}".format(person.death_date)
+    if person.b_date and person.b_date != 'null':
+        label += "\n*{}".format(person.b_date)
+    if person.d_date or person.d_date == 'null':
+        label += "\n+{}".format(person.d_date)
     return label
 
+def get_marriage_id(family):
+    f_id = family.father.id
+    m_id = family.mother.id
+    if f_id and m_id:
+        marriage_id = '{}+{}'.format(family.father.id, family.mother.id)
+    elif f_id:
+        marriage_id = f_id
+    elif m_id:
+        marriage_id = m_id
+    return marriage_id
+
+def create_family_graph(dot, family, persons):
+    marriage_id = get_marriage_id(family)
+    f_id = family.father.id
+    m_id = family.mother.id
+    if f_id and m_id:
+        with dot.subgraph() as s:
+            s.attr(rank='same')
+            s.node(f_id, create_label(persons, family.father.id))
+            s.node(marriage_id, shape='point', width='0', style='invis')
+            s.node(m_id, create_label(persons, family.mother.id))
+            s.edges([(f_id, marriage_id), (marriage_id, m_id)])
+    elif f_id:
+        dot.node(f_id, create_label(persons, family.father.id))
+    elif m_id:
+        dot.node(m_id, create_label(persons, family.mother.id))
+
 def create_family_tree(persons, families):
-    dot = Graph(comment='Family tree', edge_attr={'arrowhead': 'none'},
-                graph_attr={'splines': 'ortho', 'overlap': 'scalexy', 'concentrate': 'true', #'rankdir': 'LR',
+    dot = Graph(edge_attr={'arrowhead': 'none'},
+                graph_attr={'splines':'ortho' #'rankdir': 'LR',
                             }, node_attr={'shape': 'box'})
 
+    # create kids
     for family_id in families:
         family = families[family_id]
-
-        f_id = str(family.father.id) if hasattr(family, 'father') else None
-        m_id = str(family.mother.id) if hasattr(family, 'mother') else None
-
-        if f_id:
-            dot.node(f_id, create_label(persons, family.father.id))
-            marriage_id = f_id
-        if m_id:
-            dot.node(m_id, create_label(persons, family.mother.id))
-            marriage_id = m_id
-        if f_id and m_id:
-            marriage_id = '{}+{}'.format(family.father.id, family.mother.id)
-            dot.node(marriage_id, shape='point', width='0.01', height='0.01')
-
-            with dot.subgraph() as s:
-                s.attr(rank='same')
-                s.node(f_id)
-                s.node(m_id)
-                s.node(marriage_id)
-
-            dot.edge(f_id, marriage_id)
-            dot.edge(marriage_id, m_id)
-
+        marriage_id = get_marriage_id(family)
         if family.kids:
             kids_point = ''
             for kid in family.kids:
-                dot.node(str(kid.id), create_label(persons, kid.id))
-                kids_point += str(kid.id) + '_'
-
-            if len(family.kids) == 1:
-                kids_point = marriage_id
-            else:
-                dot.node(kids_point, shape='point', width='0.01', height='0.01')
-                dot.edge(marriage_id, kids_point)
+                #dot.node(kid.id, create_label(persons, kid.id))
+                kids_point += kid.id + '_'
 
             with dot.subgraph() as s:
                 s.attr(rank='same')
+                counter = 0
+                previous_pre_kid = None
                 for kid in family.kids:
-                    #prekid_point = "pre_kid_" + str(kid.id)
-                    #dot.node(prekid_point, shape='point', width='0.01', height='0.01')
-                    #dot.edge(kids_point, prekid_point)
-                    dot.edge(kids_point, str(kid.id))
-                    s.node(str(kid.id))
+                    counter += 1
+                    prekid_point = "pre_kid_" + kid.id
+                    if len(family.kids) % 2 == 1:
+                        if counter == math.ceil(len(family.kids) / 2):
+                            kids_point = prekid_point
+                        s.node(prekid_point, shape='point', width='0', style='invis')
+                    if len(family.kids) % 2 == 0:
+                        s.node(prekid_point, shape='point', width='0', style='invis')
+                        if counter == len(family.kids) / 2:
+                            if len(family.kids) > 2:
+                                s.node(kids_point, shape='point', width='0', style='invis')
+                                dot.edge(previous_pre_kid, kids_point)
+                                dot.edge(kids_point, prekid_point)
+                                previous_pre_kid = None
+                            else:
+                                s.node(kids_point, shape='point', width='0', style='invis')
+                                dot.edge(prekid_point, kids_point)
+                                prekid_point_2 = "pre_kid_" + family.kids[1].id
+                                s.node(prekid_point_2, shape='point', width='0', style='invis')
+                                dot.edge(kids_point, prekid_point_2)
+                                break
+                    if previous_pre_kid:
+                        dot.edge(previous_pre_kid, prekid_point)
+                    previous_pre_kid = prekid_point
+
+            for kid in family.kids:
+                prekid_point = "pre_kid_" + kid.id
+                if kid.s_id:
+                    dot.node(kid.id, create_label(persons, kid.id))
+                else:
+                    dot.node(kid.id, create_label(persons, kid.id))
+                dot.edge(prekid_point, kid.id)
+
+    for family_id in families:
+        family = families[family_id]
+        marriage_id = get_marriage_id(family)
+        if family.kids:
+            kids_point = ''
+            for kid in family.kids:
+                kids_point += kid.id + '_'
+            if len(family.kids) > 1 and len(family.kids) % 2 == 1:
+                kids_point = "pre_kid_" +  family.kids[math.ceil(len(family.kids)/2)-1].id
+            dot.edge(marriage_id, kids_point)
+
+    # create parents and marriages
+    for family_id in families:
+        family = families[family_id]
+        create_family_graph(dot, family, persons)
 
     dot.render('output.png')
+    #print(dot.source)
     return dot.source
 
 def run(input):
@@ -121,7 +168,7 @@ def run(input):
 
     for record in records:
         try:
-            persons[record['id']] = Person(**record)
+            persons[str(record['id'])] = Person(**record)
         except TypeError as e:
             return False, str(e)
 

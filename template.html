@@ -5,26 +5,144 @@
     <title>Family tree from json</title>
 </head>
 <body>
-<form action="/" method="post">
-    <h1>Enter family tree in json:</h1>
-    <textarea type="text" rows="200" cols="50" id="input_data" name="input_data" style="width: 800px; height: 300px">{{ input_data }}</textarea><br>
-    <input type="submit" value="Submit">
-</form>
-<div id="body">
-    <h3>PNG output:<br></h3>
-    {{ message }}
-</div>
 <table>
+    <form action="/" method="post">
+        <tr>
+            <td>
+                <h1>Enter family tree in json:</h1>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <textarea type="text" rows="200" cols="50" id="input_data" name="input_data"
+                          style="width: 800px; height: 300px">{{ input_data }}</textarea><br>
+            </td>
+        </tr>
+        <tr>
+            <td align="right">
+                <button type="button" id="example" onclick="createExample()">Example</button>
+                <input type="submit" value="Submit" align="">
+            </td>
+        </tr>
+    </form>
     <tr>
         <td>
-            Name: <textarea></textarea>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <button id="create_record">Create record</button>
+            <div id="body">
+                {% if message !='' and message !='' %}
+                <h3>Error:  {{ message }}</h3>
+                {% end %}
+            </div>
         </td>
     </tr>
 </table>
+<table>
+    <tr>
+        <td>
+            ID (any):
+        </td>
+        <td>
+            <input type="text" id="id">
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Name:
+        </td>
+        <td>
+            <input type="text" id="name">
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Sex:
+        </td>
+        <td>
+            <input type="checkbox" id="sex"> is male?
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Birth date:
+        </td>
+        <td>
+            <input type="text" id="b_date">
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Death date (optional):
+        </td>
+        <td>
+            <input type="text" id="d_date">
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Father ID (optional):
+        </td>
+        <td>
+            <input type="text" id="f_id">
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Mother ID (optional):
+        </td>
+        <td>
+            <input type="text" id="m_id">
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Spouse ID (optional):
+        </td>
+        <td>
+            <input type="text" id="s_id">
+        </td>
+    </tr>
+    <tr>
+        <td>
+        </td>
+        <td align="right">
+            <button id="create_record" onclick="createRecord()">Create record</button>
+        </td>
+    </tr>
+</table>
+<div id="record"></div>
+
+<script>
+function createRecord() {
+  var id = document.getElementById("id").value;
+  var name = document.getElementById("name").value;
+  var sex = "F";
+  if (document.getElementById("sex").checked == true){sex = "M";}
+  var b_date = document.getElementById("b_date").value;
+  var d_date = document.getElementById("d_date").value;
+  var f_id = document.getElementById("f_id").value;
+  var m_id = document.getElementById("m_id").value;
+  var s_id = document.getElementById("s_id").value;
+
+  var output = '{"id": "' + id + '", "name": "' + name + '", "sex": "' + sex + '", "b_date": "' + b_date + '"'
+  if (d_date != ""){output = output + ', "d_date": "' + d_date + '"';}
+  if (f_id != ""){output = output + ', "f_id": "' + f_id + '"';}
+  if (m_id != ""){output = output + ', "m_id": "' + m_id + '"';}
+  if (s_id != ""){output = output + ', "s_id": "' + s_id + '"';}
+  output = output + '}';
+  document.getElementById("record").textContent = output;
+}
+function createExample() {
+  var id = document.getElementById("input_data").textContent = '\
+  [{"id": 1, "name": "Father", "sex": "M", "b_date": "1.1.1965", "s_id": 2},\n\
+  {"id": 2, "name": "Mother", "sex": "F", "b_date": "1.1.1960", "s_id": 1, "f_id": 5, "m_id": 6},\n\
+  {"id": 3, "name": "Son", "sex": "M", "b_date": "1.1.1995", "f_id": 1, "m_id": 2},\n\
+  {"id": 4, "name": "Daughter", "sex": "F", "b_date": "1.1.1998", "f_id": 1, "m_id": 2, "s_id": 7},\n\
+  {"id": 5, "name": "Grandfather", "sex": "M", "b_date": "1.1.1930", "s_id": 6, "d_date": "31.12.2010"},\n\
+  {"id": 6, "name": "Grandmother", "sex": "F", "b_date": "1.1.1935", "s_id": 5},\n\
+  {"id": 7, "name": "Son-in-law", "sex": "M", "b_date": "1.1.1995", "s_id": 4},\n\
+  {"id": 8, "name": "Uncle", "sex": "M", "b_date": "1.1.1962", "f_id": 5, "m_id": 6}]';
+}
+
+
+</script>
 </body>
 </html>
