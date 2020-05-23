@@ -64,12 +64,15 @@ def create_family_graph(dot, family, persons):
     f_id = family.father.id
     m_id = family.mother.id
     if f_id and m_id:
-        with dot.subgraph() as s:
+        with dot.subgraph(name=marriage_id) as s:
             s.attr(rank='same')
             s.node(f_id, create_label(persons, family.father.id))
-            s.node(marriage_id, shape='point', width='0', style='invis')
             s.node(m_id, create_label(persons, family.mother.id))
-            s.edges([(f_id, marriage_id), (marriage_id, m_id)])
+            if family.kids:
+                s.node(marriage_id, shape='point', width='0', style='invis')
+                s.edges([(f_id, marriage_id), (marriage_id, m_id)])
+            else:
+                s.edge(f_id, m_id)
     elif f_id:
         dot.node(f_id, create_label(persons, family.father.id))
     elif m_id:
@@ -77,8 +80,13 @@ def create_family_graph(dot, family, persons):
 
 def create_family_tree(persons, families):
     dot = Graph(edge_attr={'arrowhead': 'none'},
-                graph_attr={'splines':'ortho' #'rankdir': 'LR',
+                graph_attr={'splines':'ortho',
                             }, node_attr={'shape': 'box'})
+
+    # create parents and marriages
+    for family_id in families:
+        family = families[family_id]
+        create_family_graph(dot, family, persons)
 
     # create kids
     for family_id in families:
@@ -88,17 +96,15 @@ def create_family_tree(persons, families):
             for kid in family.kids:
                 kids_point += kid.id + '_'
 
-            with dot.subgraph() as s:
+            with dot.subgraph(name=kids_point) as s:
                 s.attr(rank='same')
                 counter = 0
                 previous_pre = None
                 for kid in family.kids:
                     counter += 1
                     pre_point = "pre_" + kid.id
-                    if len(family.kids) % 2 == 1:
-                        s.node(pre_point, shape='point', width='0', style='invis')
-                    else:
-                        s.node(pre_point, shape='point', width='0', style='invis')
+                    s.node(pre_point, shape='point', width='0', style='invis')
+                    if len(family.kids) % 2 == 0:
                         if counter == len(family.kids) / 2:
                             if len(family.kids) > 2:
                                 s.node(kids_point, shape='point', width='0', style='invis')
@@ -117,16 +123,6 @@ def create_family_tree(persons, families):
                     previous_pre = pre_point
 
             counter = 0
-            for kid in family.kids:
-                counter += 1
-                pre_point = "pre_" + kid.id
-                dot.node(kid.id, create_label(persons, kid.id))
-                dot.edge(pre_point, kid.id)
-
-    # create parents and marriages
-    for family_id in families:
-        family = families[family_id]
-        create_family_graph(dot, family, persons)
 
     # create marriages and kids points connection
     for family_id in families:
@@ -139,6 +135,17 @@ def create_family_tree(persons, families):
             if len(family.kids) % 2 == 1:
                 kids_point = "pre_" +  family.kids[math.ceil(len(family.kids)/2)-1].id
             dot.edge(marriage_id, kids_point)
+
+    # create kids and kids points connection
+    for family_id in families:
+        family = families[family_id]
+        if family.kids:
+            for kid in family.kids:
+                counter += 1
+                pre_point = "pre_" + kid.id
+                if not kid.s_id:
+                    dot.node(kid.id, create_label(persons, kid.id))
+                dot.edge(pre_point, kid.id)
 
     dot.render('output.png')
     print(dot.source)
