@@ -112,15 +112,15 @@ def create_family_tree(persons, families):
                     counter += 1
                     pre_point = "pre_" + kid.id
                     pre_point_s = ""
-                    s.node(pre_point)
+                    s.node(pre_point, shape='point', width='0', style='invis')
                     if kid.s_id:
                         pre_point_s = "pre_" + kid.s_id
                         pre_point_w = "pre_" + get_marriage_id(kid, families)
-                        s.node(pre_point_s)
-                        s.node(pre_point_w)
+                        s.node(pre_point_s, shape='point', width='0', style='invis')
+                        s.node(pre_point_w, shape='point', width='0', style='invis')
                     if len(family.kids) % 2 == 0:
                         if counter == len(family.kids) / 2:
-                            s.node(kids_point)
+                            s.node(kids_point, shape='point', width='0', style='invis')
                             if len(family.kids) > 2:
                                 if kid.s_id:
                                     dot.edge(previous_pre, kids_point)
@@ -143,19 +143,19 @@ def create_family_tree(persons, families):
                                         dot.edge(pre_point_w, pre_point_s)
                                         dot.edge(pre_point_s, kids_point)
                                     else:
-                                        dot.edge(pre_point_s, pre_point_w)
-                                        dot.edge(pre_point_w, pre_point)
+                                        dot.edge(pre_point_s, pre_point_w, style='invis')
+                                        dot.edge(pre_point_w, pre_point, style='invis')
                                         dot.edge(pre_point, kids_point)
                                 else:
                                     dot.edge(pre_point, kids_point)
                                 kid_2 = family.kids[1]
                                 pre_point_2 = "pre_" + kid_2.id
-                                s.node(pre_point_2)
+                                s.node(pre_point_2, shape='point', width='0', style='invis')
                                 if kid_2.s_id:
                                     pre_point_s_2 = "pre_" + kid_2.s_id
                                     pre_point_w_2 = "pre_" + get_marriage_id(kid_2, families)
-                                    s.node(pre_point_s_2)
-                                    s.node(pre_point_w_2)
+                                    s.node(pre_point_s_2, shape='point', width='0', style='invis')
+                                    s.node(pre_point_w_2, shape='point', width='0', style='invis')
                                     if kid_2.sex == 'M':
                                         dot.edge(kids_point, pre_point_2)
                                         dot.edge(pre_point_2, pre_point_w_2)
@@ -220,9 +220,12 @@ def create_family_tree(persons, families):
                         pre_point_w = "pre_" + marriage_id
                         s.node(kid.s_id, create_label(persons, kid.s_id))
                         s.node(marriage_id, shape='point', width='0', style='invis')
-                        dot.edge(pre_point_s, kid.s_id)
-                        dot.edge(pre_point_w, marriage_id)
-                        dot.edges([(kid.id, marriage_id), (marriage_id, kid.s_id)])
+                        dot.edge(pre_point_s, kid.s_id, style='invis')
+                        dot.edge(pre_point_w, marriage_id, style='invis')
+                        if kid.sex == 'M':
+                            dot.edges([(kid.id, marriage_id), (marriage_id, kid.s_id)])
+                        else:
+                            dot.edges([(kid.s_id, marriage_id), (marriage_id, kid.id)])
 
     dot.render('output.png')
     print(dot.source)
