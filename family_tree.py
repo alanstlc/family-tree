@@ -50,8 +50,8 @@ def create_label(persons, person_id):
 
 def get_marriage_id(fam_or_not, families=None):
     if type(fam_or_not) is Family:
-        f_id = fam_or_not.father.id
-        m_id = fam_or_not.mother.id
+        f_id = fam_or_not.father.id if fam_or_not.father else None
+        m_id = fam_or_not.mother.id if fam_or_not.mother else None
         if f_id and m_id:
             marriage_id = '{}+{}'.format(fam_or_not.father.id, fam_or_not.mother.id)
         elif f_id:
@@ -67,12 +67,20 @@ def get_marriage_id(fam_or_not, families=None):
     return None
 
 def has_ancestors(family):
-    return family.father.f_id or family.father.m_id or family.mother.f_id or family.mother.m_id
+    father = family.father
+    mother = family.mother
+    if father:
+        if father.f_id or father.m_id:
+            return True
+    if mother:
+        if mother.f_id or mother.m_id:
+            return True
+    return False
 
 def create_family_graph(dot, family, persons):
     marriage_id = get_marriage_id(family)
-    f_id = family.father.id
-    m_id = family.mother.id
+    f_id = family.father.id if family.father else None
+    m_id = family.mother.id if family.mother else None
     if f_id and m_id:
         with dot.subgraph(name=marriage_id) as s:
             s.attr(rank='same')
