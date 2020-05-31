@@ -166,8 +166,8 @@ def create_family_tree(persons, families):
                                     s.node(pre_point_w_2, shape='point', width='0', style='invis')
                                     if kid_2.sex == 'M':
                                         dot.edge(kids_point, pre_point_2)
-                                        dot.edge(pre_point_2, pre_point_w_2)
-                                        dot.edge(pre_point_w_2, pre_point_s_2)
+                                        dot.edge(pre_point_2, pre_point_w_2, style='invis')
+                                        dot.edge(pre_point_w_2, pre_point_s_2, style='invis')
                                     else:
                                         dot.edge(kids_point, pre_point_s_2)
                                         dot.edge(pre_point_s_2, pre_point_w_2)
@@ -179,8 +179,12 @@ def create_family_tree(persons, families):
                         if kid.s_id:
                             if kid.sex == 'M':
                                 dot.edge(previous_pre, pre_point)
-                                dot.edge(pre_point, pre_point_w)
-                                dot.edge(pre_point_w, pre_point_s)
+                                if counter == len(family.kids):
+                                    dot.edge(pre_point, pre_point_w, style='invis')
+                                    dot.edge(pre_point_w, pre_point_s, style='invis')
+                                else:
+                                    dot.edge(pre_point, pre_point_w)
+                                    dot.edge(pre_point_w, pre_point_s)
                                 pre_point = pre_point_s
                             else:
                                 dot.edge(previous_pre, pre_point_s)
