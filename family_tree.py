@@ -195,8 +195,12 @@ def create_family_tree(persons, families):
                     else:
                         if kid.s_id:
                             if kid.sex == 'M':
-                                dot.edge(pre_point, pre_point_w)
-                                dot.edge(pre_point_w, pre_point_s)
+                                if len(family.kids) == 1:
+                                    dot.edge(pre_point, pre_point_w, style='invis')
+                                    dot.edge(pre_point_w, pre_point_s, style='invis')
+                                else:
+                                    dot.edge(pre_point, pre_point_w)
+                                    dot.edge(pre_point_w, pre_point_s)
                                 pre_point = pre_point_s
                             else:
                                 dot.edge(pre_point_s, pre_point_w, style='invis')
@@ -240,7 +244,6 @@ def create_family_tree(persons, families):
                             dot.edges([(kid.s_id, marriage_id), (marriage_id, kid.id)])
 
     dot.render('output.png')
-    print(dot.source)
     return dot.source
 
 def run(input):

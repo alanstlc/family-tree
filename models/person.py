@@ -1,5 +1,5 @@
 class Person:
-    def __init__(self, id: (int, str), name: str, sex: str, b_date: str, d_date: str = None,
+    def __init__(self, id: (int, str), name: str, sex: str, b_date: str = None, d_date: str = None,
                  f_id: (int, str) = None, m_id: (int, str) = None, s_id: (int, str) = None):
         self.id = str(id)
         self.f_id = str(f_id) if f_id else None
