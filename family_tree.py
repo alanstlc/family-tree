@@ -93,6 +93,16 @@ def create_family_graph(dot, family, persons):
     elif m_id:
         dot.node(m_id, create_label(persons, family.mother.id))
 
+def filter_non_existing_people(persons):
+    # filter non-existing people
+    for person in persons.values():
+        if person.m_id is not None and person.m_id not in persons:
+            person.m_id = None
+        if person.f_id is not None and person.f_id not in persons:
+            person.f_id = None
+        if person.s_id is not None and person.s_id not in persons:
+            person.s_id = None
+
 def create_family_tree(persons, families):
     dot = Graph(edge_attr={'arrowhead': 'none'},
                 graph_attr={'splines':'ortho',
@@ -270,6 +280,7 @@ def run(input):
         except TypeError as e:
             return False, str(e)
 
+    filter_non_existing_people(persons)
     families = create_families(persons)
     if families:
         return True, create_family_tree(persons, families)
